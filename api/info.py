@@ -2,7 +2,6 @@ from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import json
 import subprocess
-import os
 
 class handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
