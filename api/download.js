@@ -13,6 +13,18 @@ function getOrigin(req) {
 }
 
 export default async function handler(req, res) {
+  // ============ CORS HEADERS — MUST BE FIRST ============
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, Range");
+  res.setHeader("Access-Control-Expose-Headers", "Content-Length, Content-Range, Content-Type");
+
+  // Handle OPTIONS preflight — MUST return 200
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+  // ====================================================
+
   const { url, format } = req.query;
 
   if (!url) {
@@ -51,14 +63,10 @@ export default async function handler(req, res) {
         args.push("-i", info.requested_formats[1].url);
       }
       args.push(
-        "-c:v",
-        "libx264",
-        "-acodec",
-        "aac",
-        "-movflags",
-        "frag_keyframe+empty_moov",
-        "-f",
-        "mp4"
+        "-c:v", "libx264",
+        "-acodec", "aac",
+        "-movflags", "frag_keyframe+empty_moov",
+        "-f", "mp4"
       );
     }
     args.push("pipe:1");
@@ -90,13 +98,11 @@ export default async function handler(req, res) {
 
     ffmpeg.on("close", (code) => {
       if (code !== 0 && !res.writableEnded) {
-        // Headers already sent (streaming), so just end the response.
         console.error(`[v0] ffmpeg exited with code ${code}: ${stderr}`);
         res.end();
       }
     });
 
-    // Stop transcoding if the client disconnects.
     req.on("close", () => ffmpeg.kill("SIGKILL"));
   } catch (error) {
     if (!res.headersSent) {
