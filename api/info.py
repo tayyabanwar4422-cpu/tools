@@ -2,6 +2,7 @@ from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import json
 import subprocess
+import sys
 
 class handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
@@ -22,7 +23,8 @@ class handler(BaseHTTPRequestHandler):
             return
 
         try:
-            args = ['yt-dlp', '-J', '--no-warnings', '--no-playlist']
+            # Use python3 -m yt_dlp instead of yt-dlp binary
+            args = [sys.executable, '-m', 'yt_dlp', '-J', '--no-warnings', '--no-playlist']
             if format_type:
                 args.extend(['-f', format_type])
             args.append(url)
